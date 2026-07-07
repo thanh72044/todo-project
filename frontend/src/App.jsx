@@ -8,6 +8,7 @@ function App() {
   const [tasks, setTask] = useState([]);
   const [newTask, setNewTask] = useState('');
   const [loading, setLoading] = useState(true);
+  const [newCategory, setNewCategory] = useState('General')
   const fetchTask = async () => {
     try {
       const response = await axios.get(API_URL)
@@ -23,7 +24,7 @@ function App() {
     e.preventDefault()
     if (!newTask.trim()) return;
     try {
-      const response = await axios.post(API_URL, { title: newTask })
+      const response = await axios.post(API_URL, { title: newTask, category: newCategory })
       setTask([response.data, ...tasks])
       setNewTask('')
     } catch (error) {
@@ -61,6 +62,15 @@ function App() {
       </div>
 
       <form className="input-container" onSubmit={handelAddTask}>
+        <select
+          className="category-select"
+          value={newCategory}
+          onChange={(e) => setNewCategory(e.target.value)}>
+          <option value="General">Chung</option>
+          <option value="Work">Công việc</option>
+          <option value="Personal">Cá nhân</option>
+          <option value="Shopping">Mua sắm</option>
+        </select>
         <input
           type="text"
           placeholder="Thêm công việc mới..."
@@ -96,6 +106,9 @@ function App() {
                   <Circle size={24} className="icon-uncheck" />
                 )}
                 <span className="task-text">{task.title}</span>
+                <span className={`category-badge ${task.category?.toLowerCase() || 'general'}`}>
+                  {task.category || 'General'}
+                </span>
               </div>
               <button
                 className="btn-delete"

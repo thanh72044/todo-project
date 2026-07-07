@@ -10,8 +10,8 @@ const getTask = async (req, res) => {
 
 const createTask = async (req, res) => {
     try {
-        const { title } = req.body
-        const newTask = new Task({ title })
+        const { title, category } = req.body
+        const newTask = new Task({ title, category })
         await newTask.save()
         res.status(200).json(newTask)
     } catch (error) {

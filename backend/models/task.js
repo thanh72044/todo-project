@@ -1,3 +1,4 @@
+//File này định nghĩa cấu trúc dữ liệu sẽ được lưu xuống cơ sở dữ liệu MongoDB.
 const mongoose = require('mongoose')
 const TaskSchema = new mongoose.Schema(
     {
@@ -9,6 +10,10 @@ const TaskSchema = new mongoose.Schema(
         isComplete: {
             type: Boolean,
             default: false
+        },
+        category: {
+            type: String,
+            default: 'General'
         }
     },
     { timestamps: true }
