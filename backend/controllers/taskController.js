@@ -22,8 +22,8 @@ const createTask = async (req, res) => {
 const updateTask = async (req, res) => {
     try {
         const { id } = req.params
-        const { title, isComplete } = req.body
-        const updateTask = await Task.findByIdAndUpdate(id, { title, isComplete }, { new: true })
+        const { title, isComplete, category } = req.body
+        const updateTask = await Task.findByIdAndUpdate(id, { title, isComplete, category }, { new: true })
         res.status(200).json({ message: 'cập nhật thành công', updateTask })
     } catch (error) {
         res.status(500).json({ message: 'đã xảy ra lỗi', error })
