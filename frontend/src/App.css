@@ -196,3 +196,72 @@
   color: #34d399;
   /* Xanh ngọc */
 }
+
+/* === CSS CHO CHỈNH SỬA TASK === */
+.task-edit-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.edit-select {
+  padding: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.edit-input {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  color: white;
+  outline: none;
+}
+
+.edit-input:focus {
+  border-color: var(--accent-color);
+}
+
+.task-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.task-actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: 0.2s;
+}
+
+.btn-edit {
+  color: #60a5fa;
+}
+
+.btn-edit:hover {
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.btn-save {
+  color: var(--success-color);
+}
+
+.btn-save:hover {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.btn-cancel {
+  color: var(--text-secondary);
+}
+
+.btn-cancel:hover {
+  color: var(--danger-color);
+  background: rgba(239, 68, 68, 0.1);
+}
