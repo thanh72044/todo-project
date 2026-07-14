@@ -12,6 +12,9 @@ function App() {
   const [editTask, setEditTask] = useState(null)
   const [editTitle, setEdititle] = useState('')
   const [editCategory, setEditCategory] = useState('General')
+  const [filterCategory, setFilterCategory] = useState('All')
+  const [filterStatus, setFilterStatus] = useState('All')
+
   const fetchTask = async () => {
     try {
       const response = await axios.get(API_URL)
@@ -77,6 +80,12 @@ function App() {
     }
   }
 
+  const filterTask = tasks.filter(task => {
+    const matchCategory = filterCategory === 'All' || task.category === filterCategory
+    const matchStatus = filterStatus === 'All' || (filterStatus === 'Completed' && task.isComplete) || (filterStatus === 'Incompleted' && !task.isComplete)
+    return matchCategory && matchStatus
+  })
+
   useEffect(() => {
     fetchTask();
   }, [])
@@ -108,16 +117,40 @@ function App() {
         </button>
       </form>
 
+      <div className="filter-container" style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+        <select
+          value={filterCategory}
+          onChange={(e) => setFilterCategory(e.target.value)}
+          className="category-select"
+        >
+          <option value="All">Tất cả danh mục</option>
+          <option value="General">Chung</option>
+          <option value="Work">Công việc</option>
+          <option value="Personal">Cá nhân</option>
+          <option value="Shopping">Mua sắm</option>
+        </select>
+
+        <select
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+          className="category-select"
+        >
+          <option value="All">Tất cả trạng thái</option>
+          <option value="Completed">Đã hoàn thành</option>
+          <option value="Incompleted">Chưa hoàn thành</option>
+        </select>
+      </div>
+
       {loading ? (
         <div className="loading">Đang tải dữ liệu...</div>
-      ) : tasks.length === 0 ? (
+      ) : filterTask.length === 0 ? (
         <div className="empty-state">
           <ListTodo size={48} strokeWidth={1} />
           <p>Chưa có công việc nào. Hãy thêm công việc mới!</p>
         </div>
       ) : (
         <div className="task-list">
-          {tasks.map((task) => (
+          {filterTask.map((task) => (
             <div
               key={task._id}
               className={`task-item ${task.isComplete ? 'completed' : ''}`}
