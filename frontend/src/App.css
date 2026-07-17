@@ -29,16 +29,32 @@
   display: flex;
   gap: 0.75rem;
   margin-bottom: 2rem;
+  box-sizing: border-box;
+}
+
+.input-container > * {
+  box-sizing: border-box;
+  height: 50px;
 }
 
 .input-container input {
   flex: 1;
+  min-width: 0; /* RẤT QUAN TRỌNG: Ngăn ô text đẩy nút bấm ra ngoài */
   background: rgba(0, 0, 0, 0.2);
   border: 1px solid var(--glass-border);
   border-radius: 12px;
-  padding: 0.875rem 1rem;
+  padding: 0 1rem;
   color: white;
   transition: 0.3s;
+}
+
+/* Thêm class riêng cho input date để nó không bị quá to */
+.date-input {
+  flex: unset !important;
+  width: 135px;
+  color-scheme: dark; /* Giúp icon lịch có màu sáng */
+  font-family: inherit;
+  padding: 0 0.5rem !important; /* Thu nhỏ padding 2 bên một chút cho date */
 }
 
 .input-container input:focus {
@@ -141,11 +157,13 @@
   background: rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  padding: 0.875rem 1rem;
+  padding: 0 1rem;
   color: white;
   outline: none;
   cursor: pointer;
   transition: 0.3s;
+  box-sizing: border-box;
+  height: 50px;
 }
 
 .category-select:focus {
@@ -203,21 +221,48 @@
   align-items: center;
   gap: 0.5rem;
   width: 100%;
+  box-sizing: border-box;
+}
+
+/* Ép cứng chiều cao và cách tính viền để chúng bằng nhau chằn chặn */
+.edit-select,
+.edit-input {
+  box-sizing: border-box;
+  height: 40px;
 }
 
 .edit-select {
-  padding: 0.5rem;
-  font-size: 0.8rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  color: white;
+  outline: none;
+  cursor: pointer;
+}
+.edit-select option {
+  background: #1e293b;
+  color: white;
 }
 
 .edit-input {
   flex: 1;
+  min-width: 0; /* RẤT QUAN TRỌNG: Giúp ô nhập text có thể co lại, không đẩy nút bấm văng ra ngoài */
   background: rgba(0, 0, 0, 0.2);
   border: 1px solid var(--glass-border);
   border-radius: 8px;
-  padding: 0.5rem 0.75rem;
+  padding: 0 0.75rem;
   color: white;
   outline: none;
+}
+
+input[type="date"].edit-input {
+  flex: unset;
+  width: 130px;
+  color-scheme: dark;
+  font-family: inherit;
+  padding: 0 0.5rem;
 }
 
 .edit-input:focus {

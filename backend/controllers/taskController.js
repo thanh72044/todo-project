@@ -10,8 +10,8 @@ const getTask = async (req, res) => {
 
 const createTask = async (req, res) => {
     try {
-        const { title, category } = req.body
-        const newTask = new Task({ title, category })
+        const { title, category, dueDate } = req.body
+        const newTask = new Task({ title, category, dueDate })
         await newTask.save()
         res.status(200).json(newTask)
     } catch (error) {
@@ -22,8 +22,8 @@ const createTask = async (req, res) => {
 const updateTask = async (req, res) => {
     try {
         const { id } = req.params
-        const { title, isComplete, category } = req.body
-        const updateTask = await Task.findByIdAndUpdate(id, { title, isComplete, category }, { new: true })
+        const { title, isComplete, category, dueDate } = req.body
+        const updateTask = await Task.findByIdAndUpdate(id, { title, isComplete, category, dueDate }, { new: true })
         res.status(200).json({ message: 'cập nhật thành công', updateTask })
     } catch (error) {
         res.status(500).json({ message: 'đã xảy ra lỗi', error })

@@ -14,6 +14,8 @@ function App() {
   const [editCategory, setEditCategory] = useState('General')
   const [filterCategory, setFilterCategory] = useState('All')
   const [filterStatus, setFilterStatus] = useState('All')
+  const [newDueDate, setNewDueDate] = useState(null)
+  const [editDueDate, setEditDueDate] = useState('')
 
   const fetchTask = async () => {
     try {
@@ -30,9 +32,10 @@ function App() {
     e.preventDefault()
     if (!newTask.trim()) return;
     try {
-      const response = await axios.post(API_URL, { title: newTask, category: newCategory })
+      const response = await axios.post(API_URL, { title: newTask, category: newCategory, dueDate: newDueDate || null })
       setTask([response.data, ...tasks])
       setNewTask('')
+      setNewDueDate(null)
     } catch (error) {
       console.error('Lỗi khi lưu dữ liệu:', error);
     }
@@ -61,19 +64,22 @@ function App() {
     setEditTask(task._id)
     setEdititle(task.title)
     setEditCategory(task.category)
+    // Cần cắt chuỗi 'T' để html input type=date hiểu được (format yyyy-mm-dd)
+    setEditDueDate(task.dueDate ? task.dueDate.split('T')[0] : null)
   }
 
   const handleCancelTask = () => {
     setEditTask(null)
     setEdititle('')
+    setEditDueDate(null)
   }
 
   const handelSaveTask = async (id) => {
     if (!editTitle.trim()) return
     try {
-      setTask(tasks.map(task => task._id === id ? { ...task, title: editTitle, category: editCategory } : task))
+      setTask(tasks.map(task => task._id === id ? { ...task, title: editTitle, category: editCategory, dueDate: editDueDate || null } : task))
       setEditTask(null)
-      await axios.put(`${API_URL}/${id}`, { title: editTitle, category: editCategory })
+      await axios.put(`${API_URL}/${id}`, { title: editTitle, category: editCategory, dueDate: editDueDate || null })
     } catch (error) {
       console.error('lỗi khi cập nhật:', error)
       fetchTask()
@@ -111,6 +117,12 @@ function App() {
           placeholder="Thêm công việc mới..."
           value={newTask}
           onChange={(e) => setNewTask(e.target.value)}
+        />
+        <input
+          type="date"
+          className="date-input"
+          value={newDueDate || ''}
+          onChange={(e) => setNewDueDate(e.target.value)}
         />
         <button type="submit" className="btn-add" disabled={!newTask.trim()}>
           <Plus size={24} />
@@ -173,6 +185,12 @@ function App() {
                     onChange={(e) => setEdititle(e.target.value)}
                     autoFocus
                   />
+                  <input
+                    type="date"
+                    className="edit-input"
+                    value={editDueDate || ''}
+                    onChange={(e) => setEditDueDate(e.target.value)}
+                  />
                   <div className="task-actions">
                     <button className="btn-save" onClick={() => handelSaveTask(task._id)} title="Lưu">
                       <Check size={20} />
@@ -194,6 +212,11 @@ function App() {
                       <Circle size={24} className="icon-uncheck" />
                     )}
                     <span className="task-text">{task.title}</span>
+                    {task.dueDate && (
+                      <span className="due-date-badge" style={{ marginLeft: '10px', fontSize: '0.85rem', color: '#666' }}>
+                        ⏳ {new Date(task.dueDate).toLocaleDateString('vi-VN')}
+                      </span>
+                    )}
                     <span className={`category-badge ${task.category?.toLowerCase() || 'general'}`}>
                       {task.category || 'General'}
                     </span>
