@@ -14,6 +14,7 @@ function App() {
   const [editCategory, setEditCategory] = useState('General')
   const [filterCategory, setFilterCategory] = useState('All')
   const [filterStatus, setFilterStatus] = useState('All')
+  const [searchQuery, setSearchQuery] = useState('')
   const [newDueDate, setNewDueDate] = useState(null)
   const [editDueDate, setEditDueDate] = useState('')
 
@@ -89,7 +90,8 @@ function App() {
   const filterTask = tasks.filter(task => {
     const matchCategory = filterCategory === 'All' || task.category === filterCategory
     const matchStatus = filterStatus === 'All' || (filterStatus === 'Completed' && task.isComplete) || (filterStatus === 'Incompleted' && !task.isComplete)
-    return matchCategory && matchStatus
+    const matchSearch = task.title.toLowerCase().includes(searchQuery.toLocaleLowerCase())
+    return matchCategory && matchStatus && matchSearch
   })
 
   useEffect(() => {
@@ -130,6 +132,14 @@ function App() {
       </form>
 
       <div className="filter-container" style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+        <input
+          type="text"
+          placeholder="Tìm kiếm công việc..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="search-input"
+          style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #ddd', outline: 'none' }}
+        />
         <select
           value={filterCategory}
           onChange={(e) => setFilterCategory(e.target.value)}
