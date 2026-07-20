@@ -16,6 +16,7 @@ function App() {
   const [filterStatus, setFilterStatus] = useState('All')
   const [searchQuery, setSearchQuery] = useState('')
   const [newDueDate, setNewDueDate] = useState(null)
+  const [sortOrder, setSortOrder] = useState('Newest')
   const [editDueDate, setEditDueDate] = useState('')
 
   const fetchTask = async () => {
@@ -93,7 +94,16 @@ function App() {
     const matchSearch = task.title.toLowerCase().includes(searchQuery.toLocaleLowerCase())
     return matchCategory && matchStatus && matchSearch
   })
-
+    .sort((a, b) => {
+      if (sortOrder === 'Newest') return new Date(b.createdAt) - new Date(a.createdAt)
+      if (sortOrder === 'Oldest') return new Date(a.createdAt) - new Date(b.createdAt)
+      if (sortOrder === 'DueDate') {
+        if (!a.dueDate) return 1
+        if (!b.dueDate) return -1
+        return new Date(a.dueDate) - new Date(b.dueDate)
+      }
+      return 0
+    })
   useEffect(() => {
     fetchTask();
   }, [])
@@ -150,6 +160,15 @@ function App() {
           <option value="Work">Công việc</option>
           <option value="Personal">Cá nhân</option>
           <option value="Shopping">Mua sắm</option>
+        </select>
+        <select
+          value={sortOrder}
+          onChange={(e) => setSortOrder(e.target.value)}
+          className="category-select"
+        >
+          <option value="Newest">Mới nhất</option>
+          <option value="Oldest">Cũ nhất</option>
+          <option value="DueDate">Ngày đến hạn (Gần nhất)</option>
         </select>
 
         <select
