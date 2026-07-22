@@ -104,6 +104,12 @@ function App() {
       }
       return 0
     })
+
+  const totalTask = tasks.length
+  const completedTask = tasks.filter(task => task.isComplete).length
+  const pendingTask = totalTask - completedTask
+  const progress = totalTask === 0 ? 0 : Math.round((completedTask / totalTask) * 100)
+
   useEffect(() => {
     fetchTask();
   }, [])
@@ -112,6 +118,28 @@ function App() {
       <div className="header">
         <h1>Task Master</h1>
         <p>Quản lý công việc hàng ngày của bạn</p>
+      </div>
+      <div className="dashboard-container">
+        <div className="dashboard-stats">
+          <div className="stat-card total">
+            <span className="stat-value">{totalTask}</span>
+            <span className="stat-label">Tổng cộng</span>
+          </div>
+          <div className="stat-card completed">
+            <span className="stat-value">{completedTask}</span>
+            <span className="stat-label">Hoàn thành</span>
+          </div>
+          <div className="stat-card pending">
+            <span className="stat-value">{pendingTask}</span>
+            <span className="stat-label">Chưa xong</span>
+          </div>
+        </div>
+        <div className="progress-container">
+          <div className="progress-bar-bg">
+            <div className="progress-bar-fill" style={{ width: `${progress}%` }}></div>
+          </div>
+          <span className="progress-text">{progress}% tiến độ</span>
+        </div>
       </div>
 
       <form className="input-container" onSubmit={handelAddTask}>
