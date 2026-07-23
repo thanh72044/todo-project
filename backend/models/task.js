@@ -18,6 +18,10 @@ const TaskSchema = new mongoose.Schema(
         dueDate: {
             type: Date,
             default: null
+        },
+        order: {
+            type: Number,
+            default: Date.now
         }
     },
     { timestamps: true }

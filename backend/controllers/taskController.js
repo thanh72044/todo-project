@@ -1,7 +1,7 @@
 const Task = require('../models/task')
 const getTask = async (req, res) => {
     try {
-        const tasks = await Task.find().sort({ createdAt: -1 })
+        const tasks = await Task.find().sort({ order: 1, createdAt: -1 })
         res.status(200).json(tasks)
     } catch (error) {
         res.status(500).json({ message: 'lỗi khi lấy dữ liệu', error })
@@ -40,9 +40,30 @@ const deleteTask = async (req, res) => {
     }
 }
 
+const reorderTask = async (req, res) => {
+    try {
+        const { items } = req.body
+        if (!items || !Array.isArray(items)) {
+            res.status(400).json({ message: 'dữ liệu không hợp lệ' })
+        }
+        const bulkOps = items.map(item => ({
+            updateOne: {
+                filter: { _id: item.id },
+                update: { order: item.order }
+            }
+        }))
+        await Task.bulkWrite(bulkOps)
+        res.status(200).json({ message: 'cập nhật thứ tự thành công' })
+    } catch (error) {
+        res.status(500).json({ message: 'lỗi khi cập nhật', error })
+    }
+}
+
+
 module.exports = {
     getTask,
     createTask,
     updateTask,
-    deleteTask
+    deleteTask,
+    reorderTask
 }
