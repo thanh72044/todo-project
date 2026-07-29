@@ -22,8 +22,8 @@ const API_URL = 'http://localhost:5000/api/tasks';
 
 // 1. Component con cho mỗi Task
 function SortableTaskItem({
-  task, editTask, editCategory, editTitle, editDueDate,
-  setEditCategory, setEdititle, setEditDueDate,
+  task, editTask, editCategory, editTitle, editDueDate, editPriority,
+  setEditCategory, setEdititle, setEditDueDate, setEditPriority,
   handelSaveTask, handleCancelTask, handelToggleTask, handleEditTask, handelDeleteTask, isDragEnabled
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -52,6 +52,12 @@ function SortableTaskItem({
             <option value="Personal">Cá nhân</option>
             <option value="Shopping">Mua sắm</option>
           </select>
+          <select className="category-select edit-select" value={editPriority} onChange={(e) => setEditPriority(e.target.value)}>
+            <option value="None">Không ưu tiên</option>
+            <option value="High">🔴 Quan trọng</option>
+            <option value="Medium">🟡 Vừa phải</option>
+            <option value="Low">🟢 Thấp</option>
+          </select>
           <input type="text" className="edit-input" value={editTitle} onChange={(e) => setEdititle(e.target.value)} autoFocus />
           <input type="date" className="edit-input" value={editDueDate || ''} onChange={(e) => setEditDueDate(e.target.value)} />
           <div className="task-actions">
@@ -67,6 +73,11 @@ function SortableTaskItem({
             {task.dueDate && (
               <span className="due-date-badge" style={{ marginLeft: '10px', fontSize: '0.85rem', color: '#666' }}>
                 ⏳ {new Date(task.dueDate).toLocaleDateString('vi-VN')}
+              </span>
+            )}
+            {task.priority && task.priority !== 'None' && (
+              <span className={`priority-badge ${task.priority.toLowerCase()}`} style={{ marginLeft: '10px', fontSize: '0.8rem', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
+                {task.priority === 'High' ? '🔴 Quan trọng' : task.priority === 'Medium' ? '🟡 Vừa phải' : '🟢 Thấp'}
               </span>
             )}
             <span className={`category-badge ${task.category?.toLowerCase() || 'general'}`}>{task.category || 'General'}</span>
@@ -96,6 +107,9 @@ function App() {
   const [newDueDate, setNewDueDate] = useState(null)
   const [sortOrder, setSortOrder] = useState('Newest')
   const [editDueDate, setEditDueDate] = useState('')
+  const [newPriority, setNewPriority] = useState('None')
+  const [editPriority, setEditPriority] = useState('None')
+  const [filterPriority, setFilterPriority] = useState('All')
 
   // 2. Cài đặt cảm biến kéo thả
   const sensors = useSensors(
@@ -115,10 +129,11 @@ function App() {
     e.preventDefault()
     if (!newTask.trim()) return;
     try {
-      const response = await axios.post(API_URL, { title: newTask, category: newCategory, dueDate: newDueDate || null })
+      const response = await axios.post(API_URL, { title: newTask, category: newCategory, dueDate: newDueDate || null, priority: newPriority })
       setTask([response.data, ...tasks])
       setNewTask('')
       setNewDueDate(null)
+      setNewPriority('None')
     } catch (error) { console.error('Lỗi khi lưu dữ liệu:', error); }
   }
 
@@ -145,20 +160,22 @@ function App() {
     setEdititle(task.title)
     setEditCategory(task.category)
     setEditDueDate(task.dueDate ? task.dueDate.split('T')[0] : null)
+    setEditPriority(task.priority || 'None')
   }
 
   const handleCancelTask = () => {
     setEditTask(null)
     setEdititle('')
     setEditDueDate(null)
+    setEditPriority('None')
   }
 
   const handelSaveTask = async (id) => {
     if (!editTitle.trim()) return
     try {
-      setTask(tasks.map(task => task._id === id ? { ...task, title: editTitle, category: editCategory, dueDate: editDueDate || null } : task))
+      setTask(tasks.map(task => task._id === id ? { ...task, title: editTitle, category: editCategory, dueDate: editDueDate || null, priority: editPriority } : task))
       setEditTask(null)
-      await axios.put(`${API_URL}/${id}`, { title: editTitle, category: editCategory, dueDate: editDueDate || null })
+      await axios.put(`${API_URL}/${id}`, { title: editTitle, category: editCategory, dueDate: editDueDate || null, priority: editPriority })
     } catch (error) {
       console.error('lỗi khi cập nhật:', error); fetchTask();
     }
@@ -189,8 +206,9 @@ function App() {
   const filterTask = tasks.filter(task => {
     const matchCategory = filterCategory === 'All' || task.category === filterCategory
     const matchStatus = filterStatus === 'All' || (filterStatus === 'Completed' && task.isComplete) || (filterStatus === 'Incompleted' && !task.isComplete)
+    const matchPriority = filterPriority === 'All' || task.priority === filterPriority
     const matchSearch = task.title.toLowerCase().includes(searchQuery.toLocaleLowerCase())
-    return matchCategory && matchStatus && matchSearch
+    return matchCategory && matchStatus && matchPriority && matchSearch
   }).sort((a, b) => {
     // 4. Ưu tiên sort bằng biến order nếu đang ở chế độ Mặc định
     if (sortOrder === 'Newest') return (a.order || 0) - (b.order || 0)
@@ -200,11 +218,15 @@ function App() {
       if (!b.dueDate) return -1
       return new Date(a.dueDate) - new Date(b.dueDate)
     }
+    if (sortOrder === 'Priority') {
+      const priorityWeight = { 'High': 3, 'Medium': 2, 'Low': 1, 'None': 0 };
+      return (priorityWeight[b.priority || 'None'] || 0) - (priorityWeight[a.priority || 'None'] || 0);
+    }
     return 0
   })
 
   // 5. Chỉ cho kéo thả khi không có filter và sort ở Mặc định
-  const isDragEnabled = sortOrder === 'Newest' && filterCategory === 'All' && filterStatus === 'All' && !searchQuery;
+  const isDragEnabled = sortOrder === 'Newest' && filterCategory === 'All' && filterPriority === 'All' && filterStatus === 'All' && !searchQuery;
 
   const totalTask = tasks.length
   const completedTask = tasks.filter(task => task.isComplete).length
@@ -240,6 +262,12 @@ function App() {
           <option value="Personal">Cá nhân</option>
           <option value="Shopping">Mua sắm</option>
         </select>
+        <select className="category-select" value={newPriority} onChange={(e) => setNewPriority(e.target.value)}>
+          <option value="None">Độ ưu tiên</option>
+          <option value="High">🔴 Quan trọng</option>
+          <option value="Medium">🟡 Vừa phải</option>
+          <option value="Low">🟢 Thấp</option>
+        </select>
         <input type="text" placeholder="Thêm công việc mới..." value={newTask} onChange={(e) => setNewTask(e.target.value)} />
         <input type="date" className="date-input" value={newDueDate || ''} onChange={(e) => setNewDueDate(e.target.value)} />
         <button type="submit" className="btn-add" disabled={!newTask.trim()}><Plus size={24} /></button>
@@ -254,10 +282,18 @@ function App() {
           <option value="Personal">Cá nhân</option>
           <option value="Shopping">Mua sắm</option>
         </select>
+        <select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)} className="category-select">
+          <option value="All">Tất cả ưu tiên</option>
+          <option value="High">🔴 Quan trọng</option>
+          <option value="Medium">🟡 Vừa phải</option>
+          <option value="Low">🟢 Thấp</option>
+          <option value="None">Không ưu tiên</option>
+        </select>
         <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} className="category-select">
           <option value="Newest">Mặc định (Kéo thả)</option>
           <option value="Oldest">Cũ nhất</option>
           <option value="DueDate">Ngày đến hạn</option>
+          <option value="Priority">Độ ưu tiên cao nhất</option>
         </select>
         <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="category-select">
           <option value="All">Tất cả trạng thái</option>
@@ -295,6 +331,8 @@ function App() {
                   handleEditTask={handleEditTask}
                   handelDeleteTask={handelDeleteTask}
                   isDragEnabled={isDragEnabled}
+                  editPriority={editPriority}
+                  setEditPriority={setEditPriority}
                 />
               ))}
             </div>

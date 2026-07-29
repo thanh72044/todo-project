@@ -22,6 +22,11 @@ const TaskSchema = new mongoose.Schema(
         order: {
             type: Number,
             default: Date.now
+        },
+        priority: {
+            type: String,
+            enum: ['High', 'Medium', 'Low', 'None'],
+            default: 'None'
         }
     },
     { timestamps: true }
