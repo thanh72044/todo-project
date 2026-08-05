@@ -40,6 +40,15 @@ const deleteTask = async (req, res) => {
     }
 }
 
+const deleteAllTask = async (req, res) => {
+    try {
+        await Task.deleteMany({})
+        res.status(200).json({ message: 'đã xóa tất cả' })
+    } catch (error) {
+        res.status(500).json({ message: 'có lỗi xảy ra', error })
+    }
+}
+
 const reorderTask = async (req, res) => {
     try {
         const { items } = req.body
@@ -58,12 +67,11 @@ const reorderTask = async (req, res) => {
         res.status(500).json({ message: 'lỗi khi cập nhật', error })
     }
 }
-
-
 module.exports = {
     getTask,
     createTask,
     updateTask,
     deleteTask,
-    reorderTask
+    reorderTask,
+    deleteAllTask
 }

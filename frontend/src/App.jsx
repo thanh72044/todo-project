@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from 'axios'
-import { CheckCircle2, Circle, Trash2, Plus, ListTodo, Pencil, Check, X, GripVertical } from 'lucide-react';
+import { CheckCircle2, Circle, Trash2, Plus, ListTodo, Pencil, Check, X, GripVertical, AwardIcon } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -111,6 +111,7 @@ function App() {
   const [editPriority, setEditPriority] = useState('None')
   const [filterPriority, setFilterPriority] = useState('All')
 
+
   // 2. Cài đặt cảm biến kéo thả
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -178,6 +179,19 @@ function App() {
       await axios.put(`${API_URL}/${id}`, { title: editTitle, category: editCategory, dueDate: editDueDate || null, priority: editPriority })
     } catch (error) {
       console.error('lỗi khi cập nhật:', error); fetchTask();
+    }
+  }
+
+  const handleDeleteAllTasks = async () => {
+    if (tasks === 0) return
+    if (window.confirm('bạn có chắc là xóa chứ ?')) {
+      try {
+        await axios.delete(`${API_URL}`)
+        setTask([])
+      } catch (error) {
+        console.error('lỗi khi xóa tất cả', error)
+        fetchTask([])
+      }
     }
   }
 
@@ -251,7 +265,18 @@ function App() {
         </div>
         <div className="progress-container">
           <div className="progress-bar-bg"><div className="progress-bar-fill" style={{ width: `${progress}%` }}></div></div>
-          <span className="progress-text">{progress}% tiến độ</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
+            <span className="progress-text" style={{ margin: 0 }}>{progress}% tiến độ</span>
+            {tasks.length > 0 && (
+              <button
+                onClick={handleDeleteAllTasks}
+                className="btn-delete-all"
+                title="Xóa toàn bộ danh sách"
+              >
+                <Trash2 size={16} /> Xóa tất cả
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
