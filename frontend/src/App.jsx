@@ -1,6 +1,6 @@
+import { CheckCircle2, Circle, Trash2, Plus, ListTodo, Pencil, Check, X, GripVertical, AwardIcon, Sun, Moon } from 'lucide-react';
 import { useState, useEffect } from "react";
 import axios from 'axios'
-import { CheckCircle2, Circle, Trash2, Plus, ListTodo, Pencil, Check, X, GripVertical, AwardIcon } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -110,7 +110,21 @@ function App() {
   const [newPriority, setNewPriority] = useState('None')
   const [editPriority, setEditPriority] = useState('None')
   const [filterPriority, setFilterPriority] = useState('All')
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saveTheme = localStorage.getItem('theme')
+    return saveTheme === 'dark'
+  })
 
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.body.classList.add('dark-mode')
+      localStorage.setItem('theme', 'dark')
+    } else {
+      document.body.classList.remove('dark-mode')
+      localStorage.setItem('theme', 'light')
+    }
+  }, [isDarkMode])
 
   // 2. Cài đặt cảm biến kéo thả
   const sensors = useSensors(
@@ -254,6 +268,9 @@ function App() {
       <div className="header">
         <h1>Task Master</h1>
         <p>Quản lý công việc hàng ngày của bạn</p>
+        <button onClick={() => setIsDarkMode(!isDarkMode)} className="theme-toggle-btn">
+          {isDarkMode ? <Sun size={24} /> : <Moon size={24} />}
+        </button>
       </div>
 
       {/* ... Phần header Dashboard và Form input ... */}
