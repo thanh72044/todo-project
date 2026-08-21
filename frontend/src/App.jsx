@@ -25,13 +25,27 @@ const API_URL = 'http://localhost:5000/api/tasks';
 function SortableTaskItem({
   task, editTask, editCategory, editTitle, editDueDate, editPriority,
   setEditCategory, setEdititle, setEditDueDate, setEditPriority,
-  handelSaveTask, handleCancelTask, handelToggleTask, handleEditTask, handelDeleteTask, isDragEnabled
+  handelSaveTask, handleCancelTask, handelToggleTask, handleEditTask, handelDeleteTask, isDragEnabled,
+  editSubTask, setEditSubTask, newSubTask, setNewSubTask, handleToggleSubTask
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task._id, disabled: !isDragEnabled
   });
 
   const style = { transform: CSS.Transform.toString(transform), transition };
+
+  const handleAddSubTask = (e) => {
+    e.preventDefault();
+    if (!newSubTask.trim()) return;
+    setEditSubTask([...editSubTask, { title: newSubTask, isComplete: false }]);
+    setNewSubTask('');
+  };
+
+  const handleRemoveSubTask = (index) => {
+    const updated = [...editSubTask];
+    updated.splice(index, 1);
+    setEditSubTask(updated);
+  };
 
   return (
     <div
@@ -46,48 +60,77 @@ function SortableTaskItem({
       )}
 
       {editTask === task._id ? (
-        <div className="task-edit-form">
-          <select className="category-select edit-select" value={editCategory} onChange={(e) => setEditCategory(e.target.value)}>
-            <option value="General">Chung</option>
-            <option value="Work">Công việc</option>
-            <option value="Personal">Cá nhân</option>
-            <option value="Shopping">Mua sắm</option>
-          </select>
-          <select className="category-select edit-select" value={editPriority} onChange={(e) => setEditPriority(e.target.value)}>
-            <option value="None">Không ưu tiên</option>
-            <option value="High">🔴 Quan trọng</option>
-            <option value="Medium">🟡 Vừa phải</option>
-            <option value="Low">🟢 Thấp</option>
-          </select>
-          <input type="text" className="edit-input" value={editTitle} onChange={(e) => setEdititle(e.target.value)} autoFocus />
-          <input type="date" className="edit-input" value={editDueDate || ''} onChange={(e) => setEditDueDate(e.target.value)} />
-          <div className="task-actions">
-            <button className="btn-save" onClick={() => handelSaveTask(task._id)} title="Lưu"><Check size={20} /></button>
-            <button className="btn-cancel" onClick={handleCancelTask} title="Hủy"><X size={20} /></button>
+        <div className="task-edit-form-container" style={{ width: '100%' }}>
+          <div className="task-edit-form">
+            <select className="category-select edit-select" value={editCategory} onChange={(e) => setEditCategory(e.target.value)}>
+              <option value="General">Chung</option>
+              <option value="Work">Công việc</option>
+              <option value="Personal">Cá nhân</option>
+              <option value="Shopping">Mua sắm</option>
+            </select>
+            <select className="category-select edit-select" value={editPriority} onChange={(e) => setEditPriority(e.target.value)}>
+              <option value="None">Không ưu tiên</option>
+              <option value="High">🔴 Quan trọng</option>
+              <option value="Medium">🟡 Vừa phải</option>
+              <option value="Low">🟢 Thấp</option>
+            </select>
+            <input type="text" className="edit-input" value={editTitle} onChange={(e) => setEdititle(e.target.value)} autoFocus />
+            <input type="date" className="edit-input" value={editDueDate || ''} onChange={(e) => setEditDueDate(e.target.value)} />
+            <div className="task-actions">
+              <button className="btn-save" onClick={() => handelSaveTask(task._id)} title="Lưu"><Check size={20} /></button>
+              <button className="btn-cancel" onClick={handleCancelTask} title="Hủy"><X size={20} /></button>
+            </div>
+          </div>
+          
+          <div className="edit-subtasks-container" style={{ marginTop: '10px', padding: '10px', background: 'rgba(0,0,0,0.2)', borderRadius: '10px' }}>
+            <h4 style={{ margin: '0 0 10px 0', fontSize: '0.9rem', color: '#94a3b8' }}>Công việc con:</h4>
+            {editSubTask.map((sub, index) => (
+              <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                <span style={{ color: 'white', flex: 1 }}>{sub.title}</span>
+                <button type="button" onClick={() => handleRemoveSubTask(index)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><X size={16}/></button>
+              </div>
+            ))}
+            <form onSubmit={handleAddSubTask} style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+              <input type="text" className="edit-input" placeholder="Nhập việc con và ấn Thêm..." value={newSubTask} onChange={(e) => setNewSubTask(e.target.value)} style={{ height: '36px' }} />
+              <button type="submit" className="btn-save" style={{ padding: '0 10px', height: '36px' }}>Thêm</button>
+            </form>
           </div>
         </div>
       ) : (
-        <>
-          <div className="task-content" onClick={() => handelToggleTask(task._id, task.isComplete)}>
-            {task.isComplete ? <CheckCircle2 size={24} className="icon-check" /> : <Circle size={24} className="icon-uncheck" />}
-            <span className="task-text">{task.title}</span>
-            {task.dueDate && (
-              <span className="due-date-badge" style={{ marginLeft: '10px', fontSize: '0.85rem', color: '#666' }}>
-                ⏳ {new Date(task.dueDate).toLocaleDateString('vi-VN')}
-              </span>
-            )}
-            {task.priority && task.priority !== 'None' && (
-              <span className={`priority-badge ${task.priority.toLowerCase()}`} style={{ marginLeft: '10px', fontSize: '0.8rem', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
-                {task.priority === 'High' ? '🔴 Quan trọng' : task.priority === 'Medium' ? '🟡 Vừa phải' : '🟢 Thấp'}
-              </span>
-            )}
-            <span className={`category-badge ${task.category?.toLowerCase() || 'general'}`}>{task.category || 'General'}</span>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="task-content" onClick={() => handelToggleTask(task._id, task.isComplete)} style={{ flex: 1 }}>
+              {task.isComplete ? <CheckCircle2 size={24} className="icon-check" /> : <Circle size={24} className="icon-uncheck" />}
+              <span className="task-text">{task.title}</span>
+              {task.dueDate && (
+                <span className="due-date-badge" style={{ marginLeft: '10px', fontSize: '0.85rem', color: '#666' }}>
+                  ⏳ {new Date(task.dueDate).toLocaleDateString('vi-VN')}
+                </span>
+              )}
+              {task.priority && task.priority !== 'None' && (
+                <span className={`priority-badge ${task.priority.toLowerCase()}`} style={{ marginLeft: '10px', fontSize: '0.8rem', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
+                  {task.priority === 'High' ? '🔴 Quan trọng' : task.priority === 'Medium' ? '🟡 Vừa phải' : '🟢 Thấp'}
+                </span>
+              )}
+              <span className={`category-badge ${task.category?.toLowerCase() || 'general'}`}>{task.category || 'General'}</span>
+            </div>
+            <div className="task-actions">
+              <button className="btn-edit" onClick={() => handleEditTask(task)} title="Sửa công việc"><Pencil size={20} /></button>
+              <button className="btn-delete" onClick={() => handelDeleteTask(task._id)} title="Xóa công việc"><Trash2 size={20} /></button>
+            </div>
           </div>
-          <div className="task-actions">
-            <button className="btn-edit" onClick={() => handleEditTask(task)} title="Sửa công việc"><Pencil size={20} /></button>
-            <button className="btn-delete" onClick={() => handelDeleteTask(task._id)} title="Xóa công việc"><Trash2 size={20} /></button>
-          </div>
-        </>
+          
+          {task.subTasks && task.subTasks.length > 0 && (
+            <div className="read-subtasks-container" style={{ marginTop: '10px', paddingLeft: '40px' }}>
+              {task.subTasks.map((sub, index) => (
+                <div key={sub._id || index} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', cursor: 'pointer' }} onClick={() => handleToggleSubTask(task._id, sub._id, sub.isComplete)}>
+                   {sub.isComplete ? <CheckCircle2 size={16} className="icon-check" /> : <Circle size={16} className="icon-uncheck" />}
+                   <span style={{ fontSize: '0.9rem', color: sub.isComplete ? '#64748b' : '#cbd5e1', textDecoration: sub.isComplete ? 'line-through' : 'none' }}>{sub.title}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
@@ -115,7 +158,8 @@ function App() {
     const saveTheme = localStorage.getItem('theme')
     return saveTheme === 'dark'
   })
-
+  const [editSubTask, setEditSubTask] = useState([])
+  const [newSubTask, setNewSubTask] = useState('')
 
   useEffect(() => {
     if (isDarkMode) {
@@ -179,6 +223,7 @@ function App() {
     setEditCategory(task.category)
     setEditDueDate(task.dueDate ? task.dueDate.split('T')[0] : null)
     setEditPriority(task.priority || 'None')
+    setEditSubTask(task.subTasks || [])
   }
 
   const handleCancelTask = () => {
@@ -186,19 +231,46 @@ function App() {
     setEdititle('')
     setEditDueDate(null)
     setEditPriority('None')
+    setEditSubTask([])
+    setNewSubTask('')
   }
 
   const handelSaveTask = async (id) => {
     if (!editTitle.trim()) return
     try {
-      setTask(tasks.map(task => task._id === id ? { ...task, title: editTitle, category: editCategory, dueDate: editDueDate || null, priority: editPriority } : task))
+      setTask(tasks.map(task => task._id === id ? { ...task, title: editTitle, category: editCategory, dueDate: editDueDate || null, priority: editPriority, subTasks: editSubTask } : task))
       setEditTask(null)
-      await axios.put(`${API_URL}/${id}`, { title: editTitle, category: editCategory, dueDate: editDueDate || null, priority: editPriority })
+      await axios.put(`${API_URL}/${id}`, { title: editTitle, category: editCategory, dueDate: editDueDate || null, priority: editPriority, subTasks: editSubTask })
       toast.success('cập nhật task thành công')
     } catch (error) {
       toast.error('lỗi khi cập nhật:', error); fetchTask();
     }
   }
+
+  const handleToggleSubTask = async (taskId, subTaskId, currentStatus) => {
+    try {
+      // Tìm task hiện tại
+      const taskIndex = tasks.findIndex(t => t._id === taskId);
+      if (taskIndex === -1) return;
+
+      const currentTask = tasks[taskIndex];
+      // Tạo mảng subTask mới với trạng thái đảo ngược
+      const updatedSubTasks = currentTask.subTasks.map(sub =>
+        sub._id === subTaskId ? { ...sub, isComplete: !currentStatus } : sub
+      );
+
+      // Cập nhật giao diện lập tức
+      setTask(tasks.map(t => t._id === taskId ? { ...t, subTasks: updatedSubTasks } : t));
+
+      // Gọi API lên backend (tái sử dụng hàm update)
+      await axios.put(`${API_URL}/${taskId}`, { ...currentTask, subTasks: updatedSubTasks });
+    } catch (error) {
+      toast.error('Lỗi khi cập nhật sub-task');
+      fetchTask();
+    }
+  }
+
+
 
   const handleDeleteAllTasks = async () => {
     if (tasks === 0) return
@@ -381,6 +453,11 @@ function App() {
                   isDragEnabled={isDragEnabled}
                   editPriority={editPriority}
                   setEditPriority={setEditPriority}
+                  editSubTask={editSubTask}
+                  setEditSubTask={setEditSubTask}
+                  newSubTask={newSubTask}
+                  setNewSubTask={setNewSubTask}
+                  handleToggleSubTask={handleToggleSubTask}
                 />
               ))}
             </div>
