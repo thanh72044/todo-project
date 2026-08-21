@@ -1,6 +1,7 @@
 import { CheckCircle2, Circle, Trash2, Plus, ListTodo, Pencil, Check, X, GripVertical, AwardIcon, Sun, Moon } from 'lucide-react';
 import { useState, useEffect } from "react";
 import axios from 'axios'
+import toast, { Toaster } from "react-hot-toast"
 import {
   DndContext,
   closestCenter,
@@ -149,7 +150,8 @@ function App() {
       setNewTask('')
       setNewDueDate(null)
       setNewPriority('None')
-    } catch (error) { console.error('Lỗi khi lưu dữ liệu:', error); }
+      toast.success('thêm task thành công')
+    } catch (error) { toast.error('Lỗi khi lưu dữ liệu:', error); }
   }
 
   const handelToggleTask = async (id, currentStatus) => {
@@ -157,7 +159,7 @@ function App() {
       setTask(tasks.map(task => task._id === id ? { ...task, isComplete: !currentStatus } : task))
       await axios.put(`${API_URL}/${id}`, { isComplete: !currentStatus })
     } catch (error) {
-      console.error('Lỗi khi cập nhật:', error); fetchTask();
+      toast.error('Lỗi khi cập nhật:', error); fetchTask();
     }
   }
 
@@ -165,8 +167,9 @@ function App() {
     try {
       setTask(tasks.filter(task => task._id !== id))
       await axios.delete(`${API_URL}/${id}`)
+      toast.success('xóa task thành công')
     } catch (error) {
-      console.error('Lỗi khi xóa:', error); fetchTask();
+      toast.error('Lỗi khi xóa:', error); fetchTask();
     }
   }
 
@@ -191,8 +194,9 @@ function App() {
       setTask(tasks.map(task => task._id === id ? { ...task, title: editTitle, category: editCategory, dueDate: editDueDate || null, priority: editPriority } : task))
       setEditTask(null)
       await axios.put(`${API_URL}/${id}`, { title: editTitle, category: editCategory, dueDate: editDueDate || null, priority: editPriority })
+      toast.success('cập nhật task thành công')
     } catch (error) {
-      console.error('lỗi khi cập nhật:', error); fetchTask();
+      toast.error('lỗi khi cập nhật:', error); fetchTask();
     }
   }
 
@@ -202,8 +206,9 @@ function App() {
       try {
         await axios.delete(`${API_URL}`)
         setTask([])
+        toast.success('đã xóa hết task')
       } catch (error) {
-        console.error('lỗi khi xóa tất cả', error)
+        toast.error('lỗi khi xóa tất cả', error)
         fetchTask([])
       }
     }
@@ -271,6 +276,7 @@ function App() {
         <button onClick={() => setIsDarkMode(!isDarkMode)} className="theme-toggle-btn">
           {isDarkMode ? <Sun size={24} /> : <Moon size={24} />}
         </button>
+        <Toaster position="bottom-right" reverseOrder={false} />
       </div>
 
       {/* ... Phần header Dashboard và Form input ... */}
