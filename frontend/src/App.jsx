@@ -1,4 +1,4 @@
-import { CheckCircle2, Circle, Trash2, Plus, ListTodo, Pencil, Check, X, GripVertical, AwardIcon, Sun, Moon } from 'lucide-react';
+import { CheckCircle2, Circle, Trash2, Plus, ListTodo, Pencil, Check, X, GripVertical, AwardIcon, Sun, Download, Moon } from 'lucide-react';
 import { useState, useEffect } from "react";
 import axios from 'axios'
 import toast, { Toaster } from "react-hot-toast"
@@ -81,13 +81,13 @@ function SortableTaskItem({
               <button className="btn-cancel" onClick={handleCancelTask} title="Hủy"><X size={20} /></button>
             </div>
           </div>
-          
+
           <div className="edit-subtasks-container" style={{ marginTop: '10px', padding: '10px', background: 'rgba(0,0,0,0.2)', borderRadius: '10px' }}>
             <h4 style={{ margin: '0 0 10px 0', fontSize: '0.9rem', color: '#94a3b8' }}>Công việc con:</h4>
             {editSubTask.map((sub, index) => (
               <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
                 <span style={{ color: 'white', flex: 1 }}>{sub.title}</span>
-                <button type="button" onClick={() => handleRemoveSubTask(index)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><X size={16}/></button>
+                <button type="button" onClick={() => handleRemoveSubTask(index)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><X size={16} /></button>
               </div>
             ))}
             <form onSubmit={handleAddSubTask} style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
@@ -119,13 +119,13 @@ function SortableTaskItem({
               <button className="btn-delete" onClick={() => handelDeleteTask(task._id)} title="Xóa công việc"><Trash2 size={20} /></button>
             </div>
           </div>
-          
+
           {task.subTasks && task.subTasks.length > 0 && (
             <div className="read-subtasks-container" style={{ marginTop: '10px', paddingLeft: '40px' }}>
               {task.subTasks.map((sub, index) => (
                 <div key={sub._id || index} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', cursor: 'pointer' }} onClick={() => handleToggleSubTask(task._id, sub._id, sub.isComplete)}>
-                   {sub.isComplete ? <CheckCircle2 size={16} className="icon-check" /> : <Circle size={16} className="icon-uncheck" />}
-                   <span style={{ fontSize: '0.9rem', color: sub.isComplete ? '#64748b' : '#cbd5e1', textDecoration: sub.isComplete ? 'line-through' : 'none' }}>{sub.title}</span>
+                  {sub.isComplete ? <CheckCircle2 size={16} className="icon-check" /> : <Circle size={16} className="icon-uncheck" />}
+                  <span style={{ fontSize: '0.9rem', color: sub.isComplete ? '#64748b' : '#cbd5e1', textDecoration: sub.isComplete ? 'line-through' : 'none' }}>{sub.title}</span>
                 </div>
               ))}
             </div>
@@ -160,6 +160,16 @@ function App() {
   })
   const [editSubTask, setEditSubTask] = useState([])
   const [newSubTask, setNewSubTask] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const taskPerPage = 10
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterCategory, filterStatus, filterPriority, searchQuery, sortOrder]);
+
+
+
+  const indexOfLastTask = taskPerPage * currentPage
+  const indexOfFirstTask = indexOfLastTask - taskPerPage
 
   useEffect(() => {
     if (isDarkMode) {
@@ -330,6 +340,9 @@ function App() {
     return 0
   })
 
+  const currentTasks = filterTask.slice(indexOfFirstTask, indexOfLastTask)
+  const totalPages = Math.ceil(filterTask.length / taskPerPage)
+
   // 5. Chỉ cho kéo thả khi không có filter và sort ở Mặc định
   const isDragEnabled = sortOrder === 'Newest' && filterCategory === 'All' && filterPriority === 'All' && filterStatus === 'All' && !searchQuery;
 
@@ -337,6 +350,21 @@ function App() {
   const completedTask = tasks.filter(task => task.isComplete).length
   const pendingTask = totalTask - completedTask
   const progress = totalTask === 0 ? 0 : Math.round((completedTask / totalTask) * 100)
+
+  const handleExportData = () => {
+    const JsonString = JSON.stringify(tasks, null, 2)
+    const blob = new Blob([JsonString], { type: 'application/json' })
+    const filUrl = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = filUrl
+    link.download = 'danh sách công việc.json'
+    document.body.appendChild(link)
+    link.click()
+
+    document.body.removeChild(link)
+    URL.revokeObjectURL(filUrl)
+    toast.success('Đã tải dữ liệu về máy!');
+  }
 
   useEffect(() => { fetchTask(); }, [])
 
@@ -370,10 +398,37 @@ function App() {
               >
                 <Trash2 size={16} /> Xóa tất cả
               </button>
+
             )}
           </div>
         </div>
       </div>
+      {/* ... code cũ (thanh tiến độ) ... */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
+        <span className="progress-text" style={{ margin: 0 }}>{progress}% tiến độ</span>
+        {tasks.length > 0 && (
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button
+              onClick={handleExportData}
+              className="btn-delete-all"
+              style={{ color: '#60a5fa', borderColor: 'rgba(96, 165, 250, 0.3)', backgroundColor: 'rgba(96, 165, 250, 0.1)' }}
+              title="Tải về máy"
+            >
+              <Download size={16} /> Xuất file
+            </button>
+
+            <button
+              onClick={handleDeleteAllTasks}
+              className="btn-delete-all"
+              title="Xóa toàn bộ danh sách"
+            >
+              <Trash2 size={16} /> Xóa tất cả
+            </button>
+          </div>
+        )}
+      </div>
+      {/* ... code cũ (thẻ form bên dưới) ... */}
+
 
       <form className="input-container" onSubmit={handelAddTask}>
         <select className="category-select" value={newCategory} onChange={(e) => setNewCategory(e.target.value)}>
@@ -432,9 +487,9 @@ function App() {
       ) : (
         /* 6. Bọc DndContext quanh danh sách task */
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={filterTask.map(t => t._id)} strategy={verticalListSortingStrategy}>
-            <div className="task-list">
-              {filterTask.map((task) => (
+          <SortableContext items={currentTasks.map(t => t._id)} strategy={verticalListSortingStrategy}>
+            <div className="task-list" style={{ minHeight: '750px' }}>
+              {currentTasks.map((task) => (
                 <SortableTaskItem
                   key={task._id}
                   task={task}
@@ -462,6 +517,31 @@ function App() {
               ))}
             </div>
           </SortableContext>
+
+          {/* Giao diện Phân trang đã được chuyển xuống dưới */}
+          {totalPages > 1 && (
+            <div className="pagination">
+              <button
+                className="pagination-btn"
+                onClick={(e) => { e.preventDefault(); setCurrentPage(prev => Math.max(prev - 1, 1)); }}
+                disabled={currentPage === 1}
+              >
+                Trang trước
+              </button>
+
+              <span className="pagination-info">
+                Trang {currentPage} / {totalPages}
+              </span>
+
+              <button
+                className="pagination-btn"
+                onClick={(e) => { e.preventDefault(); setCurrentPage(prev => Math.min(prev + 1, totalPages)); }}
+                disabled={currentPage === totalPages}
+              >
+                Trang sau
+              </button>
+            </div>
+          )}
         </DndContext>
       )}
     </div>
